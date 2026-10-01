@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kora · Tablero de llamados en tiempo real.">
+    <title>Kora · Tablero de llamados</title>
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="brand" href="./tablero.html">
+                <span class="brand-mark" aria-hidden="true">K</span>
+                Kora
+            </a>
+            <nav class="site-nav" aria-label="Navegación principal">
+                <a class="nav-link" href="./index.html">Paciente</a>
+                <a class="nav-link is-active" href="./tablero.html" aria-current="page">Llamados</a>
+                <a class="nav-link" href="./admin.html">Personal</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page">
+        <div class="container">
+            <div class="row-between mb-5">
+                <div>
+                    <h1>Tablero de llamados</h1>
+                    <p class="muted small mt-1">Los turnos se actualizan automáticamente.</p>
+                </div>
+                <div class="row">
+                    <span class="clock" id="reloj" aria-label="Hora actual">--:--</span>
+                    <button class="btn btn-outline btn-sm" type="button" id="btn-sonido" aria-pressed="false">
+                        Activar sonido
+                    </button>
+                    <span class="live-dot" id="estado-conexion" data-estado="conectando">Conectando</span>
+                </div>
+            </div>
+
+            <section aria-labelledby="titulo-actual">
+                <h2 class="sr-only" id="titulo-actual">Llamado actual</h2>
+                <div id="llamado-actual"></div>
+            </section>
+
+            <section class="mt-6" aria-labelledby="titulo-atencion">
+                <div class="card-head">
+                    <div>
+                        <h2 id="titulo-atencion">En atención ahora</h2>
+                        <p class="card-sub" id="conteo-atencion">—</p>
+                    </div>
+                </div>
+                <div id="lista-atencion"></div>
+            </section>
+
+            <section class="mt-6" aria-labelledby="titulo-historial">
+                <div class="card-head">
+                    <div>
+                        <h2 id="titulo-historial">Últimos llamados</h2>
+                        <p class="card-sub">Historial de las últimas atenciones.</p>
+                    </div>
+                    <span class="badge badge-neutro" id="contador-pendientes">0 en espera</span>
+                </div>
+                <div class="card" id="historial-llamados"></div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container site-footer-inner">
+            <p>© 2026 Kora · Sistema de gestión de turnos</p>
+            <p class="muted">Actualización automática vía servidor.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="./js/tablero.js"></script>
+</body>
+</html>

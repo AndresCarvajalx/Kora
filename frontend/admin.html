@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kora · Panel de gestión de turnos para el personal.">
+    <title>Kora · Panel de personal</title>
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="brand" href="./index.html">
+                <span class="brand-mark" aria-hidden="true">K</span>
+                Kora
+            </a>
+            <nav class="site-nav" aria-label="Navegación principal">
+                <a class="nav-link" href="./index.html">Paciente</a>
+                <a class="nav-link" href="./tablero.html">Llamados</a>
+                <a class="nav-link is-active" href="./admin.html" aria-current="page">Personal</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page">
+        <div class="container">
+
+            <!-- ============ Acceso ============ -->
+            <section id="login-section" class="card card-narrow">
+                <div class="card-head">
+                    <div>
+                        <h1 class="card-title">Acceso del personal</h1>
+                        <p class="card-sub">Ingresa con tus credenciales para gestionar los turnos.</p>
+                    </div>
+                </div>
+
+                <div id="login-alerts" role="status" aria-live="polite"></div>
+
+                <form id="form-login" novalidate>
+                    <div class="field">
+                        <label class="field-label" for="login-email">Email</label>
+                        <input class="input" type="email" id="login-email" name="email"
+                               placeholder="admin@kora.com" autocomplete="username" required>
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="login-password">Contraseña</label>
+                        <input class="input" type="password" id="login-password" name="password"
+                               placeholder="••••••••" autocomplete="current-password" required>
+                    </div>
+                    <button type="submit" id="btn-login" class="btn btn-primary btn-block">Ingresar</button>
+                </form>
+            </section>
+
+            <!-- ============ Panel ============ -->
+            <section id="dashboard-section" class="hidden">
+                <div class="row-between mb-5">
+                    <div>
+                        <h1>Gestión de turnos</h1>
+                        <p class="muted small mt-1">Llama, cancela o reubica los turnos por servicio.</p>
+                    </div>
+                    <div class="row">
+                        <span class="live-dot" id="estado-conexion" data-estado="conectando">Conectando</span>
+                        <button class="btn btn-outline btn-sm" type="button" id="btn-refrescar">Refrescar</button>
+                        <button class="btn btn-ghost btn-sm" type="button" id="btn-logout">Cerrar sesión</button>
+                    </div>
+                </div>
+
+                <div id="dashboard-alerts" role="status" aria-live="polite"></div>
+
+                <section class="stats-grid mb-5" id="stats-container" aria-label="Resumen de turnos"></section>
+
+                <section class="card" aria-labelledby="titulo-panel">
+                    <div class="card-head">
+                        <div>
+                            <h2 class="card-title" id="titulo-panel">Turnos del centro</h2>
+                            <p class="card-sub">Filtra por estado o servicio para gestionar la cola.</p>
+                        </div>
+                    </div>
+
+                    <div class="row-between mb-4">
+                        <div class="filters" id="filtros-estado" role="group" aria-label="Filtrar por estado">
+                            <button class="chip is-active" type="button" data-estado="">Todos</button>
+                            <button class="chip" type="button" data-estado="PENDIENTE">Pendientes</button>
+                            <button class="chip" type="button" data-estado="EN_ATENCION">En atención</button>
+                            <button class="chip" type="button" data-estado="ATENDIDO">Atendidos</button>
+                            <button class="chip" type="button" data-estado="CANCELADO">Cancelados</button>
+                            <button class="chip" type="button" data-estado="VENCIDO">Vencidos</button>
+                        </div>
+
+                        <div class="row">
+                            <label class="sr-only" for="filtro-servicio">Filtrar por servicio</label>
+                            <select class="select" id="filtro-servicio" style="min-width: 200px;">
+                                <option value="">Todos los servicios</option>
+                            </select>
+                            <label class="sr-only" for="filtro-busqueda">Buscar</label>
+                            <input class="input" type="search" id="filtro-busqueda"
+                                   placeholder="Buscar nombre o número" style="min-width: 200px;">
+                        </div>
+                    </div>
+
+                    <div id="tabla-turnos"></div>
+                </section>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container site-footer-inner">
+            <p>© 2026 Kora · Sistema de gestión de turnos</p>
+            <p class="muted">Acceso restringido al personal autorizado.</p>
+        </div>
+    </footer>
+
+    <div id="modal-root"></div>
+
+    <script type="module" src="./js/admin.js"></script>
+</body>
+</html>

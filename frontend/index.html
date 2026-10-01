@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kora · Genera tu turno médico, consulta tu posición en la fila y sigue los llamados en vivo.">
+    <title>Kora · Turnos médicos</title>
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="brand" href="./index.html">
+                <span class="brand-mark" aria-hidden="true">K</span>
+                Kora
+            </a>
+            <nav class="site-nav" aria-label="Navegación principal">
+                <a class="nav-link is-active" href="./index.html" aria-current="page">Paciente</a>
+                <a class="nav-link" href="./tablero.html">Llamados</a>
+                <a class="nav-link" href="./admin.html">Personal</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page">
+        <div class="container">
+            <section class="hero">
+                <p class="hero-eyebrow">Sistema de gestión de turnos</p>
+                <h1>Tu turno médico sin filas ni llamadas de espera</h1>
+                <p class="hero-sub">
+                    Elige el servicio, guarda tu número de turno y consulta cuándo te atienden.
+                    Todo en tiempo real desde cualquier dispositivo.
+                </p>
+            </section>
+
+            <div class="layout-split">
+                <!-- ============ Generar turno ============ -->
+                <section class="card" aria-labelledby="titulo-generar">
+                    <div class="card-head">
+                        <div>
+                            <h2 class="card-title" id="titulo-generar">Generar turno</h2>
+                            <p class="card-sub">Completa tus datos para obtener tu número de turno.</p>
+                        </div>
+                    </div>
+
+                    <div id="crear-alerts" role="status" aria-live="polite"></div>
+
+                    <form id="form-crear" novalidate>
+                        <div class="field">
+                            <label class="field-label" for="crear-servicio">
+                                Servicio médico <span class="req" aria-hidden="true">*</span>
+                            </label>
+                            <select class="select" id="crear-servicio" name="servicio" required>
+                                <option value="">Cargando servicios…</option>
+                            </select>
+                            <span class="field-hint" id="hint-servicio">Elige la especialidad que necesitas.</span>
+                        </div>
+
+                        <div class="field">
+                            <label class="field-label" for="crear-tipo">Tipo de atención</label>
+                            <select class="select" id="crear-tipo" name="tipo_atencion" disabled>
+                                <option value="">Primero elige un servicio</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label class="field-label" for="crear-nombre">
+                                Nombre completo <span class="req" aria-hidden="true">*</span>
+                            </label>
+                            <input class="input" type="text" id="crear-nombre" name="nombre"
+                                   placeholder="Ej: María González Pérez" autocomplete="name" required>
+                        </div>
+
+                        <div class="field">
+                            <label class="field-label" for="crear-documento">Documento de identidad</label>
+                            <input class="input" type="text" id="crear-documento" name="documento"
+                                   placeholder="Ej: 1234567890" autocomplete="off">
+                            <span class="field-hint">Opcional · se registra junto a tu turno.</span>
+                        </div>
+
+                        <div class="field">
+                            <label class="field-label" for="crear-contacto">
+                                Número de contacto <span class="req" aria-hidden="true">*</span>
+                            </label>
+                            <input class="input" type="tel" id="crear-contacto" name="contacto"
+                                   placeholder="Ej: 300 123 4567" autocomplete="tel" required>
+                            <span class="field-hint">Lo usaremos para que puedas consultar tu turno después.</span>
+                        </div>
+
+                        <button type="submit" id="btn-crear" class="btn btn-primary btn-block">Generar mi turno</button>
+                    </form>
+
+                    <div id="resultado-crear" class="mt-4" aria-live="polite"></div>
+                </section>
+
+                <!-- ============ Consultar turno ============ -->
+                <aside class="card" aria-labelledby="titulo-consultar">
+                    <div class="card-head">
+                        <div>
+                            <h2 class="card-title" id="titulo-consultar">Consultar turno</h2>
+                            <p class="card-sub">Busca con tu número de turno o con tu número de contacto.</p>
+                        </div>
+                    </div>
+
+                    <div class="tabs" role="tablist" aria-label="Modo de consulta">
+                        <button class="tab is-active" type="button" role="tab" aria-selected="true"
+                                data-modo="numero" id="tab-numero">Número de turno</button>
+                        <button class="tab" type="button" role="tab" aria-selected="false"
+                                data-modo="contacto" id="tab-contacto">Número de contacto</button>
+                    </div>
+
+                    <div id="consulta-alerts" role="status" aria-live="polite"></div>
+
+                    <form id="form-consultar" novalidate>
+                        <div class="field">
+                            <label class="field-label" for="consultar-query">
+                                <span id="label-consulta">Número de turno</span>
+                            </label>
+                            <input class="input mono" type="text" id="consultar-query" name="query"
+                                   placeholder="Ej: CAR-014" autocomplete="off" required>
+                            <span class="field-hint" id="hint-consulta">Tal como aparece en tu ticket.</span>
+                        </div>
+                        <button type="submit" id="btn-consultar" class="btn btn-outline btn-block">Consultar</button>
+                    </form>
+
+                    <div id="resultado-consulta" class="mt-4" aria-live="polite"></div>
+
+                    <div class="card-foot">
+                        ¿Vienes a la sala de espera? Mira los llamados en el
+                        <a href="./tablero.html">tablero de turnos</a>.
+                    </div>
+                </aside>
+            </div>
+
+            <!-- ============ Panel de llamados ============ -->
+            <section class="card mt-5" aria-labelledby="titulo-panel">
+                <div class="card-head">
+                    <div>
+                        <h2 class="card-title" id="titulo-panel">Llamados en vivo</h2>
+                        <p class="card-sub">Actualización automática, sin recargar la página.</p>
+                    </div>
+                    <span class="live-dot" id="estado-conexion" data-estado="conectando">Conectando</span>
+                </div>
+
+                <div id="panel-llamados">
+                    <div class="skeleton" style="height: 168px;"></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container site-footer-inner">
+            <p>© 2026 Kora · Sistema de gestión de turnos</p>
+            <p class="muted">La información mostrada se actualiza en tiempo real.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="./js/main.js"></script>
+</body>
+</html>

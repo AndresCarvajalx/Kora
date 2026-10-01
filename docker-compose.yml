@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kora_postgres
+    environment:
+      POSTGRES_USER: kora
+      POSTGRES_PASSWORD: kora123
+      POSTGRES_DB: kora_turnos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kora -d kora_turnos"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kora_backend
+    environment:
+      DATABASE_URL: postgres://kora:kora123@postgres:5432/kora_turnos?sslmode=disable
+      PORT: 8080
+      TOKEN_EXPIRY_HOURS: 8
+      TURNO_EXPIRY_HOURS: 5
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: kora_frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

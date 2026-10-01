@@ -2,7 +2,7 @@
 
 Kora es un sistema web de gestión de turnos para un centro de salud. El paciente
 genera su turno, consulta su posición en la fila y sigue los llamados en vivo;
-el personal llama, cancela o reubica los turnos desde un panel web.
+el personal llama, cancela o reubica los turnos desde un panel web que le permite la gestión.
 
 ## Funcionalidades
 

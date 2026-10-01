@@ -1,0 +1,24 @@
+# Normalizar los finales de linea en el repositorio.
+# Sin esto, core.autocrlf=true en Windows convierte el LF a CRLF al hacer
+# checkout y gofmt reporta todos los archivos .go como mal formateados.
+
+* text=auto eol=lf
+
+# Archivos que Git debe tratar como binarios
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.mp3 binary
+
+# Los .sql, .md, .yml, .css, .js y .html tambien usan LF
+*.sql text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.html text eol=lf

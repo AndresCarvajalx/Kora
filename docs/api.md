@@ -180,14 +180,36 @@ estado `PENDIENTE`: en cualquier otro estado los tres últimos campos vienen en 
 }
 ```
 
+### TicketPublico
+
+Vista pública y anónima de un turno para pantallas y consultas abiertas sin sesión (Ley 1581 de 2012).
+**No incluye** datos sensibles del paciente (`cliente_nombre`, `cliente_contacto`, `cliente_documento`).
+
+```jsonc
+{
+  "numero_turno": "CAR-001",
+  "servicio_id": 1,
+  "servicio_codigo": "CAR",
+  "servicio_nombre": "Cardiología",
+  "tipo_atencion_id": 1,
+  "tipo_atencion_nombre": "Consulta general",
+  "estado": "PENDIENTE",
+  "creado_en": "2026-10-01T04:20:00Z",
+  "personas_antes": 0,
+  "posicion": 1,
+  "total_en_cola": 1,
+  "tiempo_estimado_min": 0
+}
+```
+
 ### Tablero
 
 ```jsonc
 {
   "actualizado_en": "2026-10-01T04:24:28.683227918Z",
   "pendientes": 1,                 // total de PENDIENTE del sistema
-  "en_atencion": [ /* Turno[] */ ],
-  "historial": [ /* Turno[] — los 12 últimos llamados */ ],
+  "en_atencion": [ /* TurnoTablero[] — sin teléfono ni documento */ ],
+  "historial": [ /* TurnoTablero[] — los 12 últimos llamados sin teléfono ni documento */ ],
   "ultimo_servicio": "Cardiología" // opcional: servicio del turno en atención
 }
 ```
@@ -315,11 +337,18 @@ curl -X POST http://localhost:8080/api/turnos \
 
 Devuelve el ticket de un turno a partir de su número visible.
 
+- **Por defecto (sin sesión/anónimo):** devuelve un objeto `TicketPublico` (número, servicio, estado, posición, tiempo estimado) **sin datos personales** (`cliente_nombre`, `cliente_contacto`, `cliente_documento`) en cumplimiento de la Ley 1581 de 2012.
+- **Con verificación de contacto:** si se envía el parámetro `?contacto={telefono}` o cabecera `X-Cliente-Contacto` coincidente con el turno, devuelve el objeto `TicketTurno` completo con los datos privados del paciente.
+
 ```bash
+# Vista pública (anónima)
 curl http://localhost:8080/api/turnos/CAR-001
+
+# Vista privada completa (con verificación de contacto)
+curl "http://localhost:8080/api/turnos/CAR-001?contacto=3005550011"
 ```
 
-**Respuesta `200`:** el mismo objeto `TicketTurno` que devuelve la creación.
+**Respuesta `200`:** objeto `TicketPublico` (por defecto) o `TicketTurno` (con contacto verificado).
 
 **Errores:**
 
@@ -506,18 +535,17 @@ segundos si se corta.
 
 | Evento | Cuándo se emite | Forma del `data` |
 |---|---|---|
-| `snapshot` | Al abrir la conexión, y tras la limpieza de vencidos | `Tablero` |
-| `turno_creado` | Al crear un turno | `TicketTurno` |
-| `turno_llamado` | Al pasar a `EN_ATENCION` | `{ detalle, tablero }` |
-| `turno_atendido` | Al pasar a `ATENDIDO` | `{ detalle, tablero }` |
-| `turno_cancelado` | Al cancelar o al vencer | `{ detalle, tablero }` |
-| `servicio_cambiado` | Al mover un turno a otro servicio | `{ detalle, tablero }` |
-| `turno_vencido` | Reservado para el barredor automático | `{ detalle, tablero }` |
+| `snapshot` | Al abrir la conexión, y tras la limpieza de vencidos | `Tablero` (sin teléfono ni documento) |
+| `turno_creado` | Al crear un turno | `TicketPublico` (sin datos personales) |
+| `turno_llamado` | Al pasar a `EN_ATENCION` | `{ detalle: TurnoTablero, tablero }` |
+| `turno_atendido` | Al pasar a `ATENDIDO` | `{ detalle: TurnoTablero, tablero }` |
+| `turno_cancelado` | Al cancelar o al vencer | `{ detalle: TurnoTablero, tablero }` |
+| `servicio_cambiado` | Al mover un turno a otro servicio | `{ detalle: TurnoTablero, tablero }` |
+| `turno_vencido` | Reservado para el barredor automático | `{ detalle: TurnoTablero, tablero }` |
 
-Con `detalle` viene el turno afectado y con `tablero` el estado **ya
+Con `detalle` viene el turno afectado (`TurnoTablero`, sin teléfono ni documento) y con `tablero` el estado **ya
 recalculado**, de modo que el cliente solo tiene que pintar lo que recibe, sin
-volver a consultar. `turno_creado` es la excepción: envía el ticket recién
-creado, no un tablero.
+volver a consultar. `turno_creado` envía la vista pública anónima `TicketPublico`.
 
 ---
 

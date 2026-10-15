@@ -29,8 +29,8 @@ func ObtenerTablero(ctx context.Context) (*model.Tablero, error) {
 	tablero := &model.Tablero{
 		ActualizadoEn: time.Now(),
 		Pendientes:    pendientes,
-		EnAtencion:    toPunteros(enAtencion),
-		Historial:     toPunteros(historial),
+		EnAtencion:    toTurnosTablero(enAtencion),
+		Historial:     toTurnosTablero(historial),
 	}
 
 	if len(enAtencion) > 0 {
@@ -47,9 +47,15 @@ func PublicarTablero(ctx context.Context, tipo string, datosExtra interface{}) {
 		return
 	}
 
+	// Sanitizar datosExtra si es un *model.Turno para que SSE no filtre teléfono o documento
+	detalle := datosExtra
+	if t, ok := datosExtra.(*model.Turno); ok && t != nil {
+		detalle = t.ATurnoTablero()
+	}
+
 	realtime.Default().Publicar(tipo, map[string]interface{}{
 		"tablero": tablero,
-		"detalle": datosExtra,
+		"detalle": detalle,
 	})
 }
 
@@ -63,11 +69,12 @@ func PublicarSnapshot(ctx context.Context) {
 	realtime.Default().Publicar(realtime.EventoSnapshot, tablero)
 }
 
-// toPunteros convierte un slice de valores en un slice de punteros
-func toPunteros(items []model.Turno) []*model.Turno {
-	resultado := make([]*model.Turno, 0, len(items))
+// toTurnosTablero convierte un slice de turnos en un slice de punteros a TurnoTablero
+// asegurando que teléfono y documento no se incluyan
+func toTurnosTablero(items []model.Turno) []*model.TurnoTablero {
+	resultado := make([]*model.TurnoTablero, 0, len(items))
 	for i := range items {
-		resultado = append(resultado, &items[i])
+		resultado = append(resultado, items[i].ATurnoTablero())
 	}
 	return resultado
 }

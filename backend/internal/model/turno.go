@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // Turno representa un turno en el sistema
 type Turno struct {
@@ -26,6 +29,27 @@ type Turno struct {
 	CreadoEn           time.Time  `json:"creado_en" db:"creado_en"`
 }
 
+// TurnoPublico es la vista pública del turno sin datos personales (Ley 1581 de 2012).
+// Excluye cliente_nombre, cliente_contacto y cliente_documento.
+type TurnoPublico struct {
+	ID                 int        `json:"id,omitempty"`
+	NumeroTurno        string     `json:"numero_turno"`
+	ServicioID         *int       `json:"servicio_id,omitempty"`
+	ServicioCodigo     string     `json:"servicio_codigo,omitempty"`
+	ServicioNombre     string     `json:"servicio_nombre,omitempty"`
+	TipoAtencionID     *int       `json:"tipo_atencion_id,omitempty"`
+	TipoAtencionNombre string     `json:"tipo_atencion_nombre,omitempty"`
+	FechaHora          time.Time  `json:"fecha_hora,omitempty"`
+	ExpiraEn           time.Time  `json:"expira_en,omitempty"`
+	Estado             string     `json:"estado"`
+	OrdenCola          *int       `json:"orden_cola,omitempty"`
+	LlamadoEn          *time.Time `json:"llamado_en,omitempty"`
+	AtendidoEn         *time.Time `json:"atendido_en,omitempty"`
+	CanceladoEn        *time.Time `json:"cancelado_en,omitempty"`
+	MotivoCancelacion  string     `json:"motivo_cancelacion,omitempty"`
+	CreadoEn           time.Time  `json:"creado_en,omitempty"`
+}
+
 // TicketTurno agrega al turno la información de cola que ve el cliente:
 // posición, cuántas personas hay antes y el tiempo estimado de espera.
 type TicketTurno struct {
@@ -34,6 +58,60 @@ type TicketTurno struct {
 	Posicion          int `json:"posicion"`
 	TotalEnCola       int `json:"total_en_cola"`
 	TiempoEstimadoMin int `json:"tiempo_estimado_min"`
+}
+
+// TicketPublico es la vista pública del ticket sin datos personales.
+type TicketPublico struct {
+	TurnoPublico
+	PersonasAntes     int `json:"personas_antes"`
+	Posicion          int `json:"posicion"`
+	TotalEnCola       int `json:"total_en_cola"`
+	TiempoEstimadoMin int `json:"tiempo_estimado_min"`
+}
+
+// AConsultaPublica extrae los campos públicos y anónimos de un Turno
+func (t *Turno) AConsultaPublica() *TurnoPublico {
+	if t == nil {
+		return nil
+	}
+	return &TurnoPublico{
+		ID:                 t.ID,
+		NumeroTurno:        t.NumeroTurno,
+		ServicioID:         t.ServicioID,
+		ServicioCodigo:     t.ServicioCodigo,
+		ServicioNombre:     t.ServicioNombre,
+		TipoAtencionID:     t.TipoAtencionID,
+		TipoAtencionNombre: t.TipoAtencionNombre,
+		FechaHora:          t.FechaHora,
+		ExpiraEn:           t.ExpiraEn,
+		Estado:             t.Estado,
+		OrdenCola:          t.OrdenCola,
+		LlamadoEn:          t.LlamadoEn,
+		AtendidoEn:         t.AtendidoEn,
+		CanceladoEn:        t.CanceladoEn,
+		MotivoCancelacion:  t.MotivoCancelacion,
+		CreadoEn:           t.CreadoEn,
+	}
+}
+
+// ATicketPublico convierte un TicketTurno en su vista pública sin datos personales
+func (tt *TicketTurno) ATicketPublico() *TicketPublico {
+	if tt == nil {
+		return nil
+	}
+	pub := tt.Turno.AConsultaPublica()
+	return &TicketPublico{
+		TurnoPublico:      *pub,
+		PersonasAntes:     tt.PersonasAntes,
+		Posicion:          tt.Posicion,
+		TotalEnCola:       tt.TotalEnCola,
+		TiempoEstimadoMin: tt.TiempoEstimadoMin,
+	}
+}
+
+// NormalizarContacto elimina espacios y guiones para comparar teléfonos/contactos
+func NormalizarContacto(c string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(strings.TrimSpace(c), "-", ""), " ", "")
 }
 
 // CrearTurnoRequest representa la petición para crear un turno
@@ -49,7 +127,8 @@ type CrearTurnoRequest struct {
 // ConsultarTurnoRequest representa la petición para consultar un turno.
 // El query puede ser el número de turno (CAR-014) o el contacto.
 type ConsultarTurnoRequest struct {
-	Query string `json:"query"`
+	Query    string `json:"query"`
+	Contacto string `json:"contacto,omitempty"`
 }
 
 // CambiarEstadoRequest representa la petición para cambiar el estado

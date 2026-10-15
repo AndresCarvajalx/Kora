@@ -49,12 +49,18 @@ export const consultarTurno = async (consulta) => {
 };
 
 /**
- * Obtiene un turno por su número visible
+ * Obtiene un turno por su número visible.
+ * Sin contacto devuelve la vista pública (número, servicio, estado, posición).
+ * Con contacto verificado devuelve el ticket completo privado.
  * @param {string} numero - Ej: CAR-014
+ * @param {string} [contacto] - Teléfono/contacto del paciente para ver datos privados
  * @returns {Promise<Object>}
  */
-export const obtenerTurnoPorNumero = async (numero) => {
-    const response = await fetch(urlAPI(`/api/turnos/${encodeURIComponent(numero)}`), {
+export const obtenerTurnoPorNumero = async (numero, contacto = '') => {
+    const url = contacto
+        ? urlAPI(`/api/turnos/${encodeURIComponent(numero)}?contacto=${encodeURIComponent(contacto)}`)
+        : urlAPI(`/api/turnos/${encodeURIComponent(numero)}`);
+    const response = await fetch(url, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     });

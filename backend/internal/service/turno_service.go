@@ -41,11 +41,11 @@ var reCodigoTurno = regexp.MustCompile(`^[A-Z]{2,4}-?\d{1,5}$`)
 
 // ResultadoConsulta es la respuesta normalizada de la consulta de turno
 type ResultadoConsulta struct {
-	TurnoActivo bool                `json:"turno_activo"`
-	Criterio    string              `json:"criterio,omitempty"`
-	Mensaje     string              `json:"mensaje,omitempty"`
-	Turno       *model.TicketTurno  `json:"turno,omitempty"`
-	Turnos      []model.TicketTurno `json:"turnos,omitempty"`
+	TurnoActivo bool        `json:"turno_activo"`
+	Criterio    string      `json:"criterio,omitempty"`
+	Mensaje     string      `json:"mensaje,omitempty"`
+	Turno       interface{} `json:"turno,omitempty"`
+	Turnos      interface{} `json:"turnos,omitempty"`
 }
 
 // ListarServicios devuelve el catálogo de servicios con sus tipos de atención
@@ -134,14 +134,16 @@ func CrearTurno(ctx context.Context, req *model.CrearTurnoRequest) (*model.Ticke
 		return nil, err
 	}
 
-	realtime.Default().Publicar(realtime.EventoTurnoCreado, ticket)
+	realtime.Default().Publicar(realtime.EventoTurnoCreado, ticket.ATicketPublico())
 
 	return ticket, nil
 }
 
 // ConsultarTurno busca un turno por número de turno o por contacto.
 // Si el texto parece un número (CAR-014) busca por código, si no por contacto.
-func ConsultarTurno(ctx context.Context, consulta string) (*ResultadoConsulta, error) {
+// Si busca por código y se aporta el contacto correspondiente, devuelve el ticket completo privado.
+// En caso contrario, devuelve la vista pública para proteger datos personales (Ley 1581 de 2012).
+func ConsultarTurno(ctx context.Context, consulta string, contactoVerificacion string) (*ResultadoConsulta, error) {
 	texto := strings.TrimSpace(consulta)
 	if texto == "" {
 		return nil, ErrConsultaRequerida
@@ -151,7 +153,7 @@ func ConsultarTurno(ctx context.Context, consulta string) (*ResultadoConsulta, e
 	compacto := strings.ToUpper(strings.ReplaceAll(texto, " ", ""))
 
 	if reCodigoTurno.MatchString(compacto) {
-		return consultarPorNumero(ctx, texto)
+		return consultarPorNumero(ctx, texto, contactoVerificacion)
 	}
 
 	return consultarPorContacto(ctx, texto)
@@ -176,7 +178,7 @@ func ObtenerTicketPorNumero(ctx context.Context, numero string) (*model.TicketTu
 }
 
 // consultarPorNumero busca por código de turno
-func consultarPorNumero(ctx context.Context, texto string) (*ResultadoConsulta, error) {
+func consultarPorNumero(ctx context.Context, texto string, contactoVerificacion string) (*ResultadoConsulta, error) {
 	for _, candidato := range candidatosNumeroTurno(texto) {
 		turno, err := repository.ObtenerTurnoPorNumero(ctx, candidato)
 		if err != nil {
@@ -199,10 +201,17 @@ func consultarPorNumero(ctx context.Context, texto string) (*ResultadoConsulta, 
 			return nil, err
 		}
 
+		// Si se verifica el contacto, se entrega el ticket completo privado.
+		// De lo contrario, se entrega la vista pública protegida (Ley 1581 de 2012).
+		var turnoADevolver interface{} = ticket.ATicketPublico()
+		if contactoVerificacion != "" && model.NormalizarContacto(contactoVerificacion) == model.NormalizarContacto(turno.ClienteContacto) {
+			turnoADevolver = ticket
+		}
+
 		return &ResultadoConsulta{
 			TurnoActivo: esEstadoActivo(turno.Estado),
 			Criterio:    "numero",
-			Turno:       ticket,
+			Turno:       turnoADevolver,
 		}, nil
 	}
 

@@ -85,7 +85,7 @@ func ConsultarTurnoHandler(w http.ResponseWriter, r *http.Request) {
 		consulta = req.Contacto
 	}
 
-	resultado, err := service.ConsultarTurno(r.Context(), consulta)
+	resultado, err := service.ConsultarTurno(r.Context(), consulta, req.Contacto)
 	if err != nil {
 		if errors.Is(err, service.ErrConsultaRequerida) {
 			ErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -99,6 +99,9 @@ func ConsultarTurnoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // ObtenerTurnoHandler maneja GET /api/turnos/{numero}
+// Devuelve por defecto la vista pública (número, servicio, estado, posición) sin datos personales.
+// Si se envía el contacto que coincide con el turno (?contacto=... o X-Cliente-Contacto),
+// devuelve el ticket completo privado con todos los datos.
 func ObtenerTurnoHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ErrorResponse(w, http.StatusMethodNotAllowed, "método no permitido")
@@ -112,6 +115,11 @@ func ObtenerTurnoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	contacto := strings.TrimSpace(r.URL.Query().Get("contacto"))
+	if contacto == "" {
+		contacto = strings.TrimSpace(r.Header.Get("X-Cliente-Contacto"))
+	}
+
 	ticket, err := service.ObtenerTicketPorNumero(r.Context(), numero)
 	if err != nil {
 		if errors.Is(err, service.ErrTurnoNoEncontrado) {
@@ -122,5 +130,12 @@ func ObtenerTurnoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, ticket)
+	// Si el contacto coincide con el del turno, se entrega la vista privada completa
+	if contacto != "" && model.NormalizarContacto(contacto) == model.NormalizarContacto(ticket.ClienteContacto) {
+		SuccessResponse(w, http.StatusOK, ticket)
+		return
+	}
+
+	// De lo contrario, se entrega la vista pública protegida (Ley 1581 de 2012)
+	SuccessResponse(w, http.StatusOK, ticket.ATicketPublico())
 }

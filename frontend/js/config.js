@@ -25,8 +25,13 @@ const resolverAPI = () => {
     const guardada = leerAjuste('kora_api_url');
     if (guardada) return guardada.replace(/\/$/, '');
 
-    const esLocal = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
-    return esLocal ? 'http://localhost:8080' : window.location.origin;
+    const host = window.location.hostname;
+    if (['localhost', '127.0.0.1', ''].includes(host)) return 'http://localhost:8080';
+
+    // Despliegue estático en Netlify: la API vive en Render
+    if (host.endsWith('.netlify.app')) return 'https://kora-api-i8gd.onrender.com';
+
+    return window.location.origin;
 };
 
 export const CONFIG = {

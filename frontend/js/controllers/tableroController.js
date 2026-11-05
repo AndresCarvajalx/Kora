@@ -1,6 +1,6 @@
 // Controlador de Tablero - Pantalla de llamados en tiempo real
 import { renderHTML } from '../utils/dom.js';
-import { activarSonido, reproducirAviso, sonidoActivo } from '../utils/audio.js';
+import { activarSonido, anunciarTurno, reproducirAviso, sonidoActivo } from '../utils/audio.js';
 import { conectarEventos, obtenerTablero } from '../models/tableroModel.js';
 import {
     renderEnAtencion,
@@ -52,6 +52,7 @@ export const tableroController = {
         });
     },
 
+
     /**
      * Conexión con el flujo de eventos
      */
@@ -101,6 +102,7 @@ export const tableroController = {
         const numeroActual = principal?.numero_turno ?? null;
         if (avisar && numeroActual && numeroActual !== ultimoNumero) {
             reproducirAviso();
+            anunciarTurno(numeroActual);
         }
         ultimoNumero = numeroActual;
     },

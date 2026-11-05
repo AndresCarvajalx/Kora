@@ -38,6 +38,7 @@ export const adminController = {
 
         if (authModel.estaAutenticado()) {
             cambiarVista(true);
+            this.cargarTurnos();
             this._iniciarSesionViva();
         } else {
             cambiarVista(false);

@@ -57,7 +57,9 @@
                         </div>
 
                         <div class="field">
-                            <label class="field-label" for="crear-tipo">Tipo de atención</label>
+                            <label class="field-label" for="crear-tipo">
+                                Tipo de atención <span class="req" aria-hidden="true">*</span>
+                            </label>
                             <select class="select" id="crear-tipo" name="tipo_atencion" disabled>
                                 <option value="">Primero elige un servicio</option>
                             </select>
@@ -68,14 +70,15 @@
                                 Nombre completo <span class="req" aria-hidden="true">*</span>
                             </label>
                             <input class="input" type="text" id="crear-nombre" name="nombre"
-                                   placeholder="Ej: María González Pérez" autocomplete="name" required>
+                                   placeholder="Ej: María González Pérez" autocomplete="name"
+                                   maxlength="80" required>
                         </div>
 
                         <div class="field">
                             <label class="field-label" for="crear-documento">Documento de identidad</label>
                             <input class="input" type="text" id="crear-documento" name="documento"
-                                   placeholder="Ej: 1234567890" autocomplete="off">
-                            <span class="field-hint">Opcional · se registra junto a tu turno.</span>
+                                   placeholder="Ej: 1234567890" autocomplete="off" inputmode="numeric" maxlength="15">
+                            <span class="field-hint">Opcional · solo números, de 5 a 15 dígitos.</span>
                         </div>
 
                         <div class="field">
@@ -83,7 +86,8 @@
                                 Número de contacto <span class="req" aria-hidden="true">*</span>
                             </label>
                             <input class="input" type="tel" id="crear-contacto" name="contacto"
-                                   placeholder="Ej: 300 123 4567" autocomplete="tel" required>
+                                   placeholder="Ej: 300 123 4567" autocomplete="tel" inputmode="tel"
+                                   maxlength="20" required>
                             <span class="field-hint">Lo usaremos para que puedas consultar tu turno después.</span>
                         </div>
 
@@ -156,6 +160,7 @@
         </div>
     </footer>
 
+    <script src="./js/vendor/jspdf.umd.min.js"></script>
     <script type="module" src="./js/main.js"></script>
 </body>
 </html>

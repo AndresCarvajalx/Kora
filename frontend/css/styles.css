@@ -709,16 +709,21 @@ button, input, select, textarea {
     gap: var(--space-2);
     padding: var(--space-6);
     border-radius: var(--radius-md);
-    background: var(--text-primary);
-    color: var(--surface);
+    background: #ffffff;
+    color: #000000;
+    border: 1px solid var(--border);
     text-align: center;
+}
+
+.llamado-actual p {
+    color: #000000;
 }
 
 .llamado-actual .llamado-label {
     font-size: 0.8125rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    opacity: 0.7;
+    color: #4b5563;
 }
 
 .llamado-actual .llamado-codigo {
@@ -727,13 +732,29 @@ button, input, select, textarea {
     font-weight: 700;
     line-height: 1;
     letter-spacing: 0.02em;
+    color: #000000;
 }
 
-.llamado-actual .llamado-nombre { font-size: 1.125rem; font-weight: 500; }
+.llamado-actual .llamado-nombre {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #000000;
+}
 
-.llamado-actual .llamado-servicio { font-size: 0.9375rem; opacity: 0.8; }
+.llamado-actual .llamado-servicio {
+    font-size: 0.9375rem;
+    color: #374151;
+}
 
-.llamado-actual.is-idle { background: var(--surface-alt); color: var(--text-muted); border: 1px dashed var(--border-strong); }
+.llamado-actual.is-idle {
+    background: var(--surface-alt);
+    color: var(--text-muted);
+    border: 1px dashed var(--border-strong);
+}
+
+.llamado-actual.is-idle p {
+    color: var(--text-muted);
+}
 
 .llamado-actual.is-idle .llamado-codigo { font-size: clamp(1.5rem, 1rem + 3vw, 2.5rem); }
 

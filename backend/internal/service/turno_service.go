@@ -37,9 +37,10 @@ var (
 
 var (
 	ErrContactoInvalido  = errors.New("el número de contacto debe tener entre 7 y 15 dígitos")
-	ErrNombreInvalido    = errors.New("el nombre debe tener entre 3 y 100 caracteres")
+	ErrNombreInvalido    = errors.New("el nombre debe tener entre 3 y 100 caracteres y solo letras")
 	ErrDocumentoInvalido = errors.New("el documento debe tener entre 5 y 15 dígitos")
 
+	reNombre    = regexp.MustCompile(`^\p{L}[\p{L}\s'.-]*$`)
 	reContacto  = regexp.MustCompile(`^\+?\d{7,15}$`)
 	reDocumento = regexp.MustCompile(`^\d{5,15}$`)
 )
@@ -77,7 +78,7 @@ func CrearTurno(ctx context.Context, req *model.CrearTurnoRequest) (*model.Ticke
 	if nombre == "" {
 		return nil, ErrNombreRequerido
 	}
-	if n := len([]rune(nombre)); n < 3 || n > 100 {
+	if n := len([]rune(nombre)); n < 3 || n > 100 || !reNombre.MatchString(nombre) {
 		return nil, ErrNombreInvalido
 	}
 	if documento != "" && !reDocumento.MatchString(documento) {

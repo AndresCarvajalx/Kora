@@ -165,10 +165,14 @@ func ObtenerTurnoPorID(ctx context.Context, id int) (*model.Turno, error) {
 	return turno, nil
 }
 
-// ObtenerTurnoPorNumero busca un turno por su número visible (CAR-014)
+// ObtenerTurnoPorNumero busca un turno por su número visible (CAR-014).
+// El consecutivo se reinicia cada día, así que el número puede repetirse:
+// se devuelve el más reciente.
 func ObtenerTurnoPorNumero(ctx context.Context, numero string) (*model.Turno, error) {
 	query := `SELECT ` + columnasTurno + joinsTurno + `
-		WHERE UPPER(t.numero_turno) = UPPER($1)`
+		WHERE UPPER(t.numero_turno) = UPPER($1)
+		ORDER BY t.creado_en DESC, t.id DESC
+		LIMIT 1`
 
 	turno, err := escanearTurno(database.DB.QueryRow(ctx, query, strings.TrimSpace(numero)))
 	if err != nil {

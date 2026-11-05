@@ -18,7 +18,14 @@ import {
     renderTicket
 } from '../views/turnoView.js';
 import { renderPanelCliente, setEstadoConexion } from '../views/tableroView.js';
+import {
+    compactar, normalizarContacto, pareceTelefono, validarContacto, validarDocumento,
+    validarNombre, validarServicio, validarTipoAtencion
+} from '../utils/validar.js';
+import { descargarTicketPdf } from '../utils/ticketPdf.js';
 
+/** Tickets mostrados en pantalla, por número de turno (para el PDF) */
+const tickets = new Map();
 /** Contenido del catálogo de servicios en memoria */
 let servicios = [];
 /** Cierre de la conexión en vivo */
@@ -31,6 +38,8 @@ export const turnoController = {
     init() {
         this._initTabs();
         this._initFormCrear();
+        this._initValidacionEnVivo();
+        this._initDescargaPdf();
         this._initFormConsultar();
         this._cargarServicios();
         this._initTableroEnVivo();
@@ -105,6 +114,85 @@ export const turnoController = {
     },
 
     /**
+     * Valida todos los campos del formulario y los marca en pantalla
+     * @returns {Array<[string, string]>} Campos con error
+     */
+    _validarFormulario(datos) {
+        const tipoRequerido = !document.getElementById('crear-tipo')?.disabled;
+        const errores = [
+            ['crear-servicio', validarServicio(datos.servicio_id)],
+            ['crear-tipo', validarTipoAtencion(datos.tipo_atencion_id, tipoRequerido)],
+            ['crear-nombre', validarNombre(datos.nombre)],
+            ['crear-documento', validarDocumento(datos.documento)],
+            ['crear-contacto', validarContacto(datos.contacto)]
+        ];
+
+        errores.forEach(([campo, mensaje]) => marcarErrorCampo(campo, mensaje));
+        return errores.filter(([, mensaje]) => mensaje);
+    },
+
+    /**
+     * Validación en vivo: filtra caracteres no permitidos y avisa al salir del campo
+     */
+    _initValidacionEnVivo() {
+        const reglas = {
+            'crear-servicio': () => validarServicio(document.getElementById('crear-servicio').value),
+            'crear-tipo': () => validarTipoAtencion(
+                document.getElementById('crear-tipo').value,
+                !document.getElementById('crear-tipo').disabled
+            ),
+            'crear-nombre': () => validarNombre(document.getElementById('crear-nombre').value),
+            'crear-documento': () => validarDocumento(document.getElementById('crear-documento').value),
+            'crear-contacto': () => validarContacto(document.getElementById('crear-contacto').value)
+        };
+
+        const filtros = {
+            'crear-nombre': (v) => v.replace(/[^\p{L}\s'.-]/gu, ''),
+            'crear-documento': (v) => v.replace(/\D/g, ''),
+            'crear-contacto': (v) => v.replace(/[^\d\s+().-]/g, '')
+        };
+
+        Object.entries(reglas).forEach(([id, regla]) => {
+            const campo = document.getElementById(id);
+            if (!campo) return;
+
+            campo.addEventListener('input', () => {
+                if (filtros[id]) {
+                    const limpio = filtros[id](campo.value);
+                    if (limpio !== campo.value) campo.value = limpio;
+                }
+                if (campo.classList.contains('has-error')) marcarErrorCampo(id, regla());
+            });
+            campo.addEventListener('blur', () => {
+                if (campo.value !== '' || campo.required) marcarErrorCampo(id, regla());
+            });
+            campo.addEventListener('change', () => marcarErrorCampo(id, regla()));
+        });
+    },
+
+    /**
+     * Pinta un ticket y lo guarda para poder descargar su PDF
+     */
+    _mostrarTicket(idContenedor, ticket) {
+        tickets.set(ticket.numero_turno, ticket);
+        renderTicket(idContenedor, ticket);
+    },
+
+    /**
+     * Botón "Descargar PDF" de los tickets mostrados
+     */
+    _initDescargaPdf() {
+        ['resultado-crear', 'resultado-consulta'].forEach((id) => {
+            delegar(document.getElementById(id), 'click', 'button[data-pdf]', ({ objetivo }) => {
+                const ticket = tickets.get(objetivo.dataset.pdf);
+                if (ticket && !descargarTicketPdf(ticket)) {
+                    mostrarAlerta('crear-alerts', 'error', 'No fue posible generar el PDF');
+                }
+            });
+        });
+    },
+
+    /**
      * Registra el envío del formulario de consulta
      */
     _initFormConsultar() {
@@ -125,29 +213,29 @@ export const turnoController = {
         limpiarAlertas('crear-alerts');
         renderHTML('resultado-crear', '');
 
-        const errores = [];
-        if (!datos.servicio_id) errores.push(['crear-servicio', 'Selecciona un servicio médico']);
-        if (datos.nombre.length < 3) errores.push(['crear-nombre', 'Ingresa tu nombre completo']);
-        if (datos.contacto.length < 4) errores.push(['crear-contacto', 'Ingresa un número de contacto válido']);
-
-        errores.forEach(([campo, mensaje]) => marcarErrorCampo(campo, mensaje));
-        if (errores.length > 0) return;
+        const errores = this._validarFormulario(datos);
+        if (errores.length > 0) {
+            document.getElementById(errores[0][0])?.focus();
+            return;
+        }
 
         estadoCarga('btn-crear', true, 'Generando…');
 
         try {
             const ticket = await crearTurno({
-                nombre: datos.nombre,
-                documento: datos.documento,
-                contacto: datos.contacto,
+                nombre: compactar(datos.nombre),
+                documento: datos.documento.replace(/[\s.-]/g, ''),
+                contacto: normalizarContacto(datos.contacto),
                 servicio_id: Number(datos.servicio_id),
                 tipo_atencion_id: datos.tipo_atencion_id ? Number(datos.tipo_atencion_id) : 0
             });
 
             limpiarFormularioCrear();
             poblarTiposAtencion([]);
-            renderTicket('resultado-crear', ticket);
-            mostrarAlerta('crear-alerts', 'success', `Turno ${ticket.numero_turno} generado. Guárdalo para consultar después.`);
+            this._mostrarTicket('resultado-crear', ticket);
+            mostrarAlerta('crear-alerts', 'success', `Turno ${ticket.numero_turno} generado. Se descargó el ticket en PDF.`);
+            // Equivale a la impresión del ticket: se genera el PDF automáticamente
+            descargarTicketPdf(ticket);
         } catch (error) {
             mostrarAlerta('crear-alerts', 'error', error.message);
         } finally {
@@ -159,12 +247,27 @@ export const turnoController = {
      * Consulta el turno por número o por contacto
      */
     async _consultarTurno() {
-        const consulta = obtenerConsulta();
+        let consulta = obtenerConsulta();
         limpiarAlertas('consulta-alerts');
 
         if (!consulta) {
             marcarErrorCampo('consultar-query', 'Ingresa tu número de turno o de contacto');
             return;
+        }
+
+        if (pareceTelefono(consulta)) {
+            // Un teléfono se consulta tal como se guardó: solo dígitos
+            const error = validarContacto(consulta);
+            if (error) {
+                marcarErrorCampo('consultar-query', error);
+                return;
+            }
+            consulta = normalizarContacto(consulta);
+        } else if (!/^[A-Za-z]{2,4}-?\d{1,5}$/.test(consulta)) {
+            marcarErrorCampo('consultar-query', 'Usa el formato del ticket, por ejemplo MED-003');
+            return;
+        } else {
+            consulta = consulta.toUpperCase();
         }
 
         marcarErrorCampo('consultar-query', '');
@@ -184,7 +287,7 @@ export const turnoController = {
                 return;
             }
 
-            renderTicket('resultado-consulta', respuesta.turno);
+            this._mostrarTicket('resultado-consulta', respuesta.turno);
         } catch (error) {
             renderSinTurno('resultado-consulta', error.message);
             mostrarAlerta('consulta-alerts', 'error', error.message);

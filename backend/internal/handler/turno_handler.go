@@ -43,6 +43,9 @@ func CrearTurnoHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		esValidacion := errors.Is(err, service.ErrContactoRequerido) ||
 			errors.Is(err, service.ErrNombreRequerido) ||
+			errors.Is(err, service.ErrContactoInvalido) ||
+			errors.Is(err, service.ErrNombreInvalido) ||
+			errors.Is(err, service.ErrDocumentoInvalido) ||
 			errors.Is(err, service.ErrServicioRequerido) ||
 			errors.Is(err, service.ErrServicioInvalido) ||
 			errors.Is(err, service.ErrTipoAtencionInvalido) ||

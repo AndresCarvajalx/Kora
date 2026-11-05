@@ -115,6 +115,10 @@ const plantillaTicket = (ticket) => {
                 <span>${escapar(pie)}</span>
                 <span>${escapar(ticket.motivo_cancelacion ? `Motivo: ${ticket.motivo_cancelacion}` : `Vence ${formatearFechaHora(ticket.expira_en)}`)}</span>
             </footer>
+            <div class="ticket-actions" style="padding: 0 1.25rem 1.25rem;">
+                <button class="btn btn-outline btn-block" type="button"
+                        data-pdf="${escapar(ticket.numero_turno || '')}">Descargar ticket en PDF</button>
+            </div>
         </article>
     `;
 };

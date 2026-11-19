@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Kora · Genera tu turno médico, consulta tu posición en la fila y sigue los llamados en vivo.">
+    <meta name="description"
+        content="Kora · Genera tu turno médico, consulta tu posición en la fila y sigue los llamados en vivo.">
     <title>Kora · Turnos médicos</title>
     <link rel="stylesheet" href="./css/styles.css">
 </head>
+
 <body>
     <header class="site-header">
         <div class="container header-inner">
@@ -26,7 +29,7 @@
         <div class="container">
             <section class="hero">
                 <p class="hero-eyebrow">Sistema de gestión de turnos</p>
-                <h1>Tu turno médico sin filas ni llamadas de espera</h1>
+                <h1>Tu turno médico sin filas ni llamadas de espera, ya</h1>
                 <p class="hero-sub">
                     Elige el servicio, guarda tu número de turno y consulta cuándo te atienden.
                     Todo en tiempo real desde cualquier dispositivo.
@@ -70,14 +73,13 @@
                                 Nombre completo <span class="req" aria-hidden="true">*</span>
                             </label>
                             <input class="input" type="text" id="crear-nombre" name="nombre"
-                                   placeholder="Ej: María González Pérez" autocomplete="name"
-                                   maxlength="80" required>
+                                placeholder="Ej: María González Pérez" autocomplete="name" maxlength="80" required>
                         </div>
 
                         <div class="field">
                             <label class="field-label" for="crear-documento">Documento de identidad</label>
                             <input class="input" type="text" id="crear-documento" name="documento"
-                                   placeholder="Ej: 1234567890" autocomplete="off" inputmode="numeric" maxlength="15">
+                                placeholder="Ej: 1234567890" autocomplete="off" inputmode="numeric" maxlength="15">
                             <span class="field-hint">Opcional · solo números, de 5 a 15 dígitos.</span>
                         </div>
 
@@ -86,8 +88,8 @@
                                 Número de contacto <span class="req" aria-hidden="true">*</span>
                             </label>
                             <input class="input" type="tel" id="crear-contacto" name="contacto"
-                                   placeholder="Ej: 300 123 4567" autocomplete="tel" inputmode="tel"
-                                   maxlength="20" required>
+                                placeholder="Ej: 300 123 4567" autocomplete="tel" inputmode="tel" maxlength="20"
+                                required>
                             <span class="field-hint">Lo usaremos para que puedas consultar tu turno después.</span>
                         </div>
 
@@ -107,10 +109,10 @@
                     </div>
 
                     <div class="tabs" role="tablist" aria-label="Modo de consulta">
-                        <button class="tab is-active" type="button" role="tab" aria-selected="true"
-                                data-modo="numero" id="tab-numero">Número de turno</button>
-                        <button class="tab" type="button" role="tab" aria-selected="false"
-                                data-modo="contacto" id="tab-contacto">Número de contacto</button>
+                        <button class="tab is-active" type="button" role="tab" aria-selected="true" data-modo="numero"
+                            id="tab-numero">Número de turno</button>
+                        <button class="tab" type="button" role="tab" aria-selected="false" data-modo="contacto"
+                            id="tab-contacto">Número de contacto</button>
                     </div>
 
                     <div id="consulta-alerts" role="status" aria-live="polite"></div>
@@ -121,7 +123,7 @@
                                 <span id="label-consulta">Número de turno</span>
                             </label>
                             <input class="input mono" type="text" id="consultar-query" name="query"
-                                   placeholder="Ej: CAR-014" autocomplete="off" required>
+                                placeholder="Ej: CAR-014" autocomplete="off" required>
                             <span class="field-hint" id="hint-consulta">Tal como aparece en tu ticket.</span>
                         </div>
                         <button type="submit" id="btn-consultar" class="btn btn-outline btn-block">Consultar</button>
@@ -163,4 +165,5 @@
     <script src="./js/vendor/jspdf.umd.min.js"></script>
     <script type="module" src="./js/main.js"></script>
 </body>
+
 </html>
